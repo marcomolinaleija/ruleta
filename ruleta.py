@@ -8,103 +8,126 @@ import sys
 from speaker import alert
 
 class RuletaApp(wx.Frame):
-    def __init__(self, *args, **kw):
-        super(RuletaApp, self).__init__(*args, **kw)
+	def __init__(self, *args, **kw):
+		super(RuletaApp, self).__init__(*args, **kw)
 
-        # Inicializar la interfaz gráfica
-        self.init_ui()
+		# Inicializar la interfaz gráfica
+		self.init_ui()
 
-        # Inicializar el mixer de pygame
-        pygame.mixer.init()
+		# Inicializar el mixer de pygame
+		pygame.mixer.init()
 
-    def init_ui(self):
-        panel = wx.Panel(self)
+		# Cargar elementos guardados si existe el archivo
+		self.load_items()
 
-        # Etiqueta para el cuadro de texto
-        lbl_element = wx.StaticText(panel, label="Ingrese un elemento:", pos=(10, 10))
-        # Cuadro de texto para añadir elementos
-        self.txt_element = wx.TextCtrl(panel, pos=(10, 30), size=(200, -1))
-        
-        # Botón para añadir el elemento a la lista
-        btn_add = wx.Button(panel, label="&Añadir", pos=(220, 30))
-        btn_add.Bind(wx.EVT_BUTTON, self.on_add_element)
-        
-        # etiqueta y Lista de elementos añadidos
-        lbl_elements = wx.StaticText(panel, label="&Elementos añadidos:", pos=(10, 10))
-        self.list_elements = wx.ListBox(panel, pos=(10, 70), size=(300, 200))
+		# Registrar el evento de salida de la aplicación
+		self.Bind(wx.EVT_CLOSE, self.on_close)
 
-        # Botón para girar la ruleta
-        self.btn_spin = wx.Button(panel, label="&Girar Ruleta", pos=(10, 280))
-        self.btn_spin.Bind(wx.EVT_BUTTON, self.on_spin_thread)
+	def init_ui(self):
+		panel = wx.Panel(self)
 
-        # Botón para eliminar todos los elementos de la lista
-        btn_clear = wx.Button(panel, label="Eliminar Todos", pos=(120, 280))
-        btn_clear.Bind(wx.EVT_BUTTON, self.on_clear_elements)
+		# Etiqueta para el cuadro de texto
+		lbl_element = wx.StaticText(panel, label="Ingrese un elemento:", pos=(10, 10))
+		# Cuadro de texto para añadir elementos
+		self.txt_element = wx.TextCtrl(panel, pos=(10, 30), size=(200, -1))
+		
+		# Botón para añadir el elemento a la lista
+		btn_add = wx.Button(panel, label="&Añadir", pos=(220, 30))
+		btn_add.Bind(wx.EVT_BUTTON, self.on_add_element)
+		
+		# etiqueta y Lista de elementos añadidos
+		lbl_elements = wx.StaticText(panel, label="&Elementos añadidos:", pos=(10, 10))
+		self.list_elements = wx.ListBox(panel, pos=(10, 70), size=(300, 200))
 
-        # Configuración de la ventana
-        self.SetTitle("Ruleta Simple")
-        self.SetSize((350, 400))
-        self.Centre()
+		# Botón para girar la ruleta
+		self.btn_spin = wx.Button(panel, label="&Girar Ruleta", pos=(10, 280))
+		self.btn_spin.Bind(wx.EVT_BUTTON, self.on_spin_thread)
 
-    def resource_path(self, relative_path):
-        """ Obtiene la ruta del recurso, ya sea en desarrollo o en el ejecutable. """
-        base_path = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
-        return os.path.join(base_path, relative_path)
+		# Botón para eliminar todos los elementos de la lista
+		btn_clear = wx.Button(panel, label="Eliminar Todos", pos=(120, 280))
+		btn_clear.Bind(wx.EVT_BUTTON, self.on_clear_elements)
 
-    def on_add_element(self, event):
-        element = self.txt_element.GetValue()
-        if element:
-            self.list_elements.Append(element)
-            alert(f"Elemento añadido: {element}")
-            self.current_items = self.list_elements.GetItems()
-            alert(f"Cantidad actual de elementos en la lista: {len(self.current_items)}")
-            self.txt_element.SetValue("")  # Limpiar el cuadro de texto
-            self.txt_element.SetFocus()  # Enfocar el cuadro de texto nuevamente
+		# Configuración de la ventana
+		self.SetTitle("Ruleta Simple")
+		self.SetSize((350, 400))
+		self.Centre()
 
-    def on_clear_elements(self, event):
-        """Elimina todos los elementos de la lista."""
-        self.list_elements.Clear()
-        alert("Todos los elementos han sido eliminados.")
+	def resource_path(self, relative_path):
+		""" Obtiene la ruta del recurso, ya sea en desarrollo o en el ejecutable. """
+		base_path = getattr(sys, "_MEIPASS", os.path.dirname(os.path.abspath(__file__)))
+		return os.path.join(base_path, relative_path)
 
-    def on_spin_thread(self, event):
-        """Inicia el hilo para ejecutar la función on_spin."""
-        hilo = threading.Thread(target=self.on_spin, daemon=True)
-        hilo.start()
+	def on_add_element(self, event):
+		element = self.txt_element.GetValue()
+		if element:
+			self.list_elements.Append(element)
+			alert(f"Elemento añadido: {element}")
+			self.current_items = self.list_elements.GetItems()
+			alert(f"Cantidad actual de elementos en la lista: {len(self.current_items)}")
+			self.txt_element.SetValue("")  # Limpiar el cuadro de texto
+			self.txt_element.SetFocus()  # Enfocar el cuadro de texto nuevamente
 
-    def on_spin(self):
-        elements = self.list_elements.GetItems()
-        if not elements:
-            wx.CallAfter(wx.MessageBox, "No hay elementos en la lista para girar la ruleta.", "Error", wx.OK | wx.ICON_ERROR)
-            return
+	def on_clear_elements(self, event):
+		"""Elimina todos los elementos de la lista."""
+		self.list_elements.Clear()
+		alert("Todos los elementos han sido eliminados.")
 
-        # Deshabilitar el botón y cambiar el texto
-        wx.CallAfter(self.update_button_state, False, "Ruleta en progreso...")
+	def on_spin_thread(self, event):
+		"""Inicia el hilo para ejecutar la función on_spin."""
+		hilo = threading.Thread(target=self.on_spin, daemon=True)
+		hilo.start()
 
-        # Obtener la ruta del archivo de sonido
-        sound_path = self.resource_path("ruleta.ogg")
+	def on_spin(self):
+		elements = self.list_elements.GetItems()
+		if not elements:
+			wx.CallAfter(wx.MessageBox, "No hay elementos en la lista para girar la ruleta.", "Error", wx.OK | wx.ICON_ERROR)
+			return
 
-        # Reproducir el sonido de la ruleta
-        pygame.mixer.music.load(sound_path)
-        pygame.mixer.music.play()
+		# Deshabilitar el botón y cambiar el texto
+		wx.CallAfter(self.update_button_state, False, "Ruleta en progreso...")
 
-        # Esperar a que termine el sonido
-        while pygame.mixer.music.get_busy():
-            time.sleep(0.1)
+		# Obtener la ruta del archivo de sonido
+		sound_path = self.resource_path("ruleta.ogg")
 
-        # Elegir un elemento aleatorio
-        chosen_element = random.choice(elements)
-        wx.CallAfter(wx.MessageBox, f"El resultado de la ruleta es: {chosen_element}", "Resultado", wx.OK | wx.ICON_INFORMATION)
+		# Reproducir el sonido de la ruleta
+		pygame.mixer.music.load(sound_path)
+		pygame.mixer.music.play()
 
-        # Habilitar el botón y restaurar el texto
-        wx.CallAfter(self.update_button_state, True, "Girar Ruleta")
+		# Esperar a que termine el sonido
+		while pygame.mixer.music.get_busy():
+			time.sleep(0.1)
 
-    def update_button_state(self, enabled, label):
-        """Actualiza el estado del botón y su etiqueta."""
-        self.btn_spin.SetLabel(label)
-        self.btn_spin.Enable(enabled)
+		# Elegir un elemento aleatorio
+		chosen_element = random.choice(elements)
+		wx.CallAfter(wx.MessageBox, f"El resultado de la ruleta es: {chosen_element}", "Resultado", wx.OK | wx.ICON_INFORMATION)
+
+		# Habilitar el botón y restaurar el texto
+		wx.CallAfter(self.update_button_state, True, "Girar Ruleta")
+
+	def update_button_state(self, enabled, label):
+		"""Actualiza el estado del botón y su etiqueta."""
+		self.btn_spin.SetLabel(label)
+		self.btn_spin.Enable(enabled)
+
+	def load_items(self):
+		"""Carga los elementos guardados desde el archivo items.txt si existe."""
+		if os.path.exists("items.txt"):
+			with open("items.txt", "r") as file:
+				items = file.readlines()
+				items = [item.strip() for item in items]
+				self.list_elements.AppendItems(items)
+
+	def on_close(self, event):
+		"""Guarda los elementos en items.txt al salir si la lista no está vacía."""
+		if self.list_elements.GetCount() > 0:
+			with open("items.txt", "w") as file:
+				items = self.list_elements.GetItems()
+				for item in items:
+					file.write(item + "\n")
+		self.Destroy()
 
 if __name__ == "__main__":
-    app = wx.App(False)
-    frame = RuletaApp(None)
-    frame.Show()
-    app.MainLoop()
+	app = wx.App(False)
+	frame = RuletaApp(None)
+	frame.Show()
+	app.MainLoop()
