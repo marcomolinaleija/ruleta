@@ -1,20 +1,29 @@
-from accessible_output2.outputs.auto import Auto
-import json
+import ctypes
 import os
 
-speaker = Auto()
+# Obtenemos el directorio actual donde se encuentra el script
+current_dir = os.path.dirname(os.path.abspath(__file__))
 
-def alert(message, interrupt=False):
-    if voice_output_enabled():
-        speaker.speak(message, interrupt=interrupt)
+# Definimos la ruta a la DLL dentro de la subcarpeta 'lib'
+dll_path = os.path.join(current_dir, 'lib', 'nvdaControllerClient64.dll')
 
-def voice_output_enabled():
-    documents_dir = os.path.expanduser("~/Documents")
-    app_data_dir = os.path.join(documents_dir, "ml_player_data")
-    config_file = os.path.join(app_data_dir, "config.json")
-    try:
-        with open(config_file, 'r') as file:
-            config = json.load(file)
-            return config.get('voice_output_enabled', False)
-    except FileNotFoundError:
-        return False
+# depuración
+print("Ruta de la DLL:", dll_path)
+
+# Verifica si la DLL existe
+if not os.path.exists(dll_path):
+	print("La DLL no se encontró en la ruta especificada.")
+else:
+	# Carga la DLL
+	nvda_dll = ctypes.CDLL(dll_path)
+
+	# Define el tipo de argumento y el tipo de retorno para la función en la DLL
+	nvda_dll.nvdaController_speakText.argtypes = [ctypes.c_wchar_p]
+	nvda_dll.nvdaController_speakText.restype = None
+
+	def alert(message):
+		speak_text(message)
+
+	def speak_text(text):
+		# Llama a la función de la DLL para que NVDA lea el texto
+		nvda_dll.nvdaController_speakText(text)

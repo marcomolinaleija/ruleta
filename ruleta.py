@@ -1,10 +1,9 @@
 import wx
 import random
-import pygame
-import time
 import threading
 import os
 import sys
+import pygame
 from speaker import alert
 
 class RuletaApp(wx.Frame):
@@ -13,9 +12,6 @@ class RuletaApp(wx.Frame):
 
 		# Inicializar la interfaz gráfica
 		self.init_ui()
-
-		# Inicializar el mixer de pygame
-		pygame.mixer.init()
 
 		# Cargar elementos guardados si existe el archivo
 		self.load_items()
@@ -35,17 +31,21 @@ class RuletaApp(wx.Frame):
 		btn_add = wx.Button(panel, label="&Añadir", pos=(220, 30))
 		btn_add.Bind(wx.EVT_BUTTON, self.on_add_element)
 		
-		# etiqueta y Lista de elementos añadidos
-		lbl_elements = wx.StaticText(panel, label="&Elementos añadidos:", pos=(10, 10))
-		self.list_elements = wx.ListBox(panel, pos=(10, 70), size=(300, 200))
+		# Etiqueta y Lista de elementos añadidos
+		lbl_elements = wx.StaticText(panel, label="&Elementos añadidos:", pos=(10, 60))
+		self.list_elements = wx.ListBox(panel, pos=(10, 80), size=(300, 200))
 
 		# Botón para girar la ruleta
-		self.btn_spin = wx.Button(panel, label="&Girar Ruleta", pos=(10, 280))
+		self.btn_spin = wx.Button(panel, label="&Girar Ruleta", pos=(10, 300))
 		self.btn_spin.Bind(wx.EVT_BUTTON, self.on_spin_thread)
 
 		# Botón para eliminar todos los elementos de la lista
-		btn_clear = wx.Button(panel, label="Eliminar Todos", pos=(120, 280))
+		btn_clear = wx.Button(panel, label="Eliminar Todos", pos=(120, 300))
 		btn_clear.Bind(wx.EVT_BUTTON, self.on_clear_elements)
+
+		# Botón para salir del programa
+		btn_exit = wx.Button(panel, label="Salir", pos=(220, 300))
+		btn_exit.Bind(wx.EVT_BUTTON, self.on_exit)
 
 		# Configuración de la ventana
 		self.SetTitle("Ruleta Simple")
@@ -90,12 +90,13 @@ class RuletaApp(wx.Frame):
 		sound_path = self.resource_path("ruleta.ogg")
 
 		# Reproducir el sonido de la ruleta
+		pygame.mixer.init()
 		pygame.mixer.music.load(sound_path)
 		pygame.mixer.music.play()
 
-		# Esperar a que termine el sonido
+		# Esperar a que termine la reproducción
 		while pygame.mixer.music.get_busy():
-			time.sleep(0.1)
+			wx.Yield()  # Permitir que la interfaz gráfica siga respondiendo
 
 		# Elegir un elemento aleatorio
 		chosen_element = random.choice(elements)
@@ -111,20 +112,30 @@ class RuletaApp(wx.Frame):
 
 	def load_items(self):
 		"""Carga los elementos guardados desde el archivo items.txt si existe."""
-		if os.path.exists("items.txt"):
-			with open("items.txt", "r") as file:
+		user_directory = os.path.expanduser("~")  # Obtener el directorio del usuario
+		items_file_path = os.path.join(user_directory, "items.txt")  # Combina con el nombre del archivo
+
+		if os.path.exists(items_file_path):
+			with open(items_file_path, "r") as file:
 				items = file.readlines()
 				items = [item.strip() for item in items]
 				self.list_elements.AppendItems(items)
 
 	def on_close(self, event):
 		"""Guarda los elementos en items.txt al salir si la lista no está vacía."""
+		user_directory = os.path.expanduser("~")  # Obtener el directorio del usuario
+		items_file_path = os.path.join(user_directory, "items.txt")  # Combina con el nombre del archivo
+
 		if self.list_elements.GetCount() > 0:
-			with open("items.txt", "w") as file:
+			with open(items_file_path, "w") as file:
 				items = self.list_elements.GetItems()
 				for item in items:
 					file.write(item + "\n")
 		self.Destroy()
+
+	def on_exit(self, event):
+		"""Cierra la aplicación."""
+		self.Close()
 
 if __name__ == "__main__":
 	app = wx.App(False)
