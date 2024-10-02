@@ -71,6 +71,9 @@ class RuletaApp(wx.Frame):
 		"""Elimina todos los elementos de la lista."""
 		self.list_elements.Clear()
 		alert("Todos los elementos han sido eliminados.")
+		if os.path.exists(self.items_file_path):
+			os.remove(self.items_file_path)
+			alert("Archivo items.txt eliminado.")
 
 	def on_spin_thread(self, event):
 		"""Inicia el hilo para ejecutar la función on_spin."""
@@ -112,11 +115,11 @@ class RuletaApp(wx.Frame):
 
 	def load_items(self):
 		"""Carga los elementos guardados desde el archivo items.txt si existe."""
-		user_directory = os.path.expanduser("~")  # Obtener el directorio del usuario
-		items_file_path = os.path.join(user_directory, "items.txt")  # Combina con el nombre del archivo
+		self.user_directory = os.path.expanduser("~")  # Obtener el directorio del usuario
+		self.items_file_path = os.path.join(self.user_directory, "items.txt")  # Combina con el nombre del archivo
 
-		if os.path.exists(items_file_path):
-			with open(items_file_path, "r") as file:
+		if os.path.exists(self.items_file_path):
+			with open(self.items_file_path, "r") as file:
 				items = file.readlines()
 				items = [item.strip() for item in items]
 				self.list_elements.AppendItems(items)
