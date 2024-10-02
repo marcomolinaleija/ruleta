@@ -1,13 +1,19 @@
 import ctypes
 import os
+import sys
 
-# Obtenemos el directorio actual donde se encuentra el script
-current_dir = os.path.dirname(os.path.abspath(__file__))
+# Determinamos el directorio actual dependiendo si está empaquetado con pyinstaller o no
+if getattr(sys, 'frozen', False):
+	# Si la aplicación está empaquetada, usamos el directorio temporal de PyInstaller
+	current_dir = sys._MEIPASS
+else:
+	# Si no está empaquetada, usamos el directorio del script
+	current_dir = os.path.dirname(os.path.abspath(__file__))
 
 # Definimos la ruta a la DLL dentro de la subcarpeta 'lib'
 dll_path = os.path.join(current_dir, 'lib', 'nvdaControllerClient64.dll')
 
-# depuración
+# Depuración
 print("Ruta de la DLL:", dll_path)
 
 # Verifica si la DLL existe
@@ -27,3 +33,10 @@ else:
 	def speak_text(text):
 		# Llama a la función de la DLL para que NVDA lea el texto
 		nvda_dll.nvdaController_speakText(text)
+
+# Ejemplo de uso
+if __name__ == "__main__":
+	if os.path.exists(dll_path):
+		alert("La aplicación se ha iniciado correctamente.")
+	else:
+		print("No se puede usar la función de NVDA ya que la DLL no se encontró.")
