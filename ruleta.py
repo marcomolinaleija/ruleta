@@ -26,6 +26,7 @@ class RuletaApp(wx.Frame):
 		lbl_element = wx.StaticText(panel, label="Ingrese un elemento:", pos=(10, 10))
 		# Cuadro de texto para añadir elementos
 		self.txt_element = wx.TextCtrl(panel, pos=(10, 30), size=(200, -1))
+		self.txt_element.Bind(wx.EVT_TEXT_ENTER, self.on_spin)
 
 		# Botón para añadir el elemento a la lista
 		btn_add = wx.Button(panel, label="&Añadir", pos=(220, 30))
