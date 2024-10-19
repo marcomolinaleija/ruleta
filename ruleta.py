@@ -4,7 +4,7 @@ import threading
 import os
 import sys
 import pygame
-from speaker import alert
+import speaker
 
 class RuletaApp(wx.Frame):
 	def __init__(self, *args, **kw):
